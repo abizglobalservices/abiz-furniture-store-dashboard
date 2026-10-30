@@ -48,8 +48,22 @@ th{background:var(--navy);color:#fff}
 .badge.low{background:var(--red-tint);color:var(--red)}
 .badge.ok{background:var(--green-tint);color:var(--green)}
 .badge.out{background:var(--red-tint);color:var(--red)}
-.scan-result{margin-top:14px;background:var(--green-tint);border:1px solid #9ed4ae;border-radius:10px;padding:16px}
+.scan-result{margin-top:14px;background:var(--green-tint);border:1px solid #9ed4ae;border-radius:10px;padding:18px}
 .scan-result b{color:var(--navy)}
+.scan-result.notfound{background:var(--red-tint);border-color:#f0b8b2}
+.scan-head{display:flex;gap:12px;align-items:flex-start}
+.scan-tick{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;text-align:center;line-height:40px;font-weight:bold;font-size:20px;flex-shrink:0}
+.scan-name{margin:0;color:var(--navy);font-size:22px;line-height:1.25}
+.scan-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.scan-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.scan-stat{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.scan-stat span{display:block;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.scan-stat b{display:block;font-size:20px;color:var(--navy);margin-top:2px}
+.barcode-box{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;text-align:center}
+.barcode-bars{display:flex;align-items:stretch;justify-content:center;gap:3px;height:52px}
+.barcode-bars i{display:block;background:#111}
+.barcode-code{font-family:monospace;font-size:18px;letter-spacing:.18em;margin-top:8px;color:var(--ink)}
+@media(max-width:480px){.scan-stats{grid-template-columns:1fr 1fr}.scan-name{font-size:19px}}
 footer{text-align:center;padding:4px 0 10px}
 @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}
 @media(max-width:480px){
@@ -217,17 +231,32 @@ function renderRows(){
  });
  document.getElementById("resultCount").textContent="Showing "+list.length+" of "+PRODUCTS.length+" SKUs.";
 }
+function barcodeBars(sku){
+ var out="";
+ for(var i=0;i<sku.length;i++){
+  var code=sku.charCodeAt(i);
+  for(var bit=7;bit>=0;bit--){
+   var on=(code>>bit)&1;
+   out+="<i style='width:3px"+(on?"":";background:transparent")+"'></i>";
+  }
+  out+="<i style='width:4px;background:transparent'></i>";
+ }
+ return out;
+}
 function showScan(p){
- var el=document.getElementById("scanResult"); el.style.display="block";
+ var el=document.getElementById("scanResult"); el.style.display="block"; el.className="scan-result";
  var s=statusOf(p);
- el.innerHTML="<b>Found: "+p.name+"</b><br>SKU / Barcode: "+p.sku+"<br>Category: "+p.cat+" - Location: "+p.loc+"<br>Stock: "+p.stock+" - Status: "+s+" - Price: "+money(p.price);
+ el.innerHTML="<div class='scan-head'><span class='scan-tick' aria-hidden='true'>✓</span><div><p class='eyebrow' style='margin:0'>Found item</p><h3 class='scan-name'>"+p.name+"</h3></div></div>"+
+ "<div class='scan-badges'><span class='badge'>"+p.cat+"</span><span class='badge "+(p.loc==="Showroom"?"showroom":"warehouse")+"'>"+p.loc+"</span><span class='badge "+badgeClass(s)+"'>"+s+"</span></div>"+
+ "<div class='scan-stats'><div class='scan-stat'><span>Stock</span><b>"+p.stock+"</b></div><div class='scan-stat'><span>Price</span><b>"+money(p.price)+"</b></div><div class='scan-stat'><span>SKU</span><b>"+p.sku+"</b></div></div>"+
+ "<div class='barcode-box'><div class='barcode-bars' aria-hidden='true'>"+barcodeBars(p.sku)+"</div><div class='barcode-code'>"+p.sku+"</div></div>";
  document.getElementById("scanEmpty").style.display="none";
 }
 function scanBarcode(){
  var code=(document.getElementById("barcode").value||"").trim().toUpperCase();
  if(!code){alert("Enter a barcode first, for example FUR-001.");return;}
  var p=PRODUCTS.find(function(x){return x.sku===code;});
- if(!p){var el=document.getElementById("scanResult");el.style.display="block";el.innerHTML="<b>No item found for barcode "+code+".</b><br>Try FUR-001 to FUR-025.";document.getElementById("scanEmpty").style.display="none";return;}
+ if(!p){var el=document.getElementById("scanResult");el.style.display="block";el.className="scan-result notfound";el.innerHTML="<div class='scan-head'><div><p class='eyebrow' style='margin:0'>Not found</p><h3 class='scan-name'>No item found for "+code+"</h3></div></div><p class='note' style='margin-top:10px'>Try FUR-001 to FUR-025.</p>";document.getElementById("scanEmpty").style.display="none";return;}
  showScan(p);
 }
 function simulateScan(){

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Furniture Store Dashboard | Abiz Global Services</title>
+<meta name="description" content="Furniture store inventory dashboard demo with 25 sample SKUs, showroom vs warehouse filters, low-stock alerts, and barcode input simulation.">
+<style>
+:root{--navy:#0b2a5b;--green:#0b7a43;--green-tint:#eaf7ee;--gold:#c9a227;--ink:#1a2433;--muted:#44546e;--border:#d5dce6;--bg:#f2f4f7;--card:#ffffff;--red:#b42318;--red-tint:#fef0ef;--amber:#8a5a00;--amber-tint:#fff8e1}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 32px}
+.hero{padding:28px 0 6px}
+.hero h1{margin:0 0 8px;color:var(--navy);font-size:30px;line-height:1.2}
+.hero p{margin:0;color:var(--muted);font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.stat{background:var(--card);border:1px solid var(--border);border-top:4px solid var(--gold);border-radius:12px;padding:14px}
+.stat b{display:block;font-size:26px;color:var(--navy)}
+.stat span{font-size:14px;color:var(--muted)}
+.stat.alert{border-top-color:var(--red)}
+.stat.alert b{color:var(--red)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(11,42,91,.08);margin-bottom:18px}
+h2{margin:0 0 6px;color:var(--navy);font-size:20px}
+.note{font-size:14px;color:var(--muted)}
+.eyebrow{color:var(--green);font-weight:bold;font-size:14px;letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px}
+label{display:block;font-weight:bold;margin:12px 0 4px;font-size:15px}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;background:#fff;color:var(--ink)}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{background:#eef2f7;color:var(--ink);border:1px solid var(--border);padding:10px 16px;border-radius:20px;cursor:pointer;font-weight:bold}
+.seg button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.check{font-weight:normal;display:flex;gap:10px;align-items:flex-start}
+.check input{width:20px;height:20px;flex-shrink:0;margin-top:2px}
+button.primary{background:var(--green);color:#fff;border:0;padding:12px 20px;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
+button.secondary{background:#eef2f7;border:1px solid var(--border);padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:bold}
+.alert-box{background:var(--red-tint);border:1px solid #f0b8b2;border-radius:10px;padding:14px}
+.alert-box b{color:var(--red)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-wrap table{min-width:760px}
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+th,td{border:1px solid var(--border);padding:8px;text-align:left}
+th{background:var(--navy);color:#fff}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:13px;font-weight:bold}
+.badge.showroom{background:var(--green-tint);color:var(--green)}
+.badge.warehouse{background:#eef2f7;color:var(--navy)}
+.badge.low{background:var(--red-tint);color:var(--red)}
+.badge.ok{background:var(--green-tint);color:var(--green)}
+.badge.out{background:var(--red-tint);color:var(--red)}
+.scan-result{margin-top:14px;background:var(--green-tint);border:1px solid #9ed4ae;border-radius:10px;padding:16px}
+.scan-result b{color:var(--navy)}
+footer{text-align:center;padding:4px 0 10px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}
+@media(max-width:480px){
+ .hero h1{font-size:24px}
+ .stats{grid-template-columns:1fr 1fr;gap:10px}
+ .stat{padding:12px}
+ .stat b{font-size:22px}
+ .card{padding:16px}
+ .wrap{padding:0 14px 24px}
+ table{font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Furniture Store Dashboard</h1>
+    <p>Sample inventory for a furniture store: 25 SKUs, showroom vs warehouse stock, low-stock alerts, and barcode simulation. Demo data only, in this browser only.</p>
+    <p class="note">Demo for the live Fiverr gig by sardar__tech (Wafa Abbas) - management dashboard for furniture store inventory. No real store data is used.</p>
+  </header>
+
+  <section class="stats" aria-label="Inventory summary">
+    <div class="stat"><b id="statSkus">25</b><span>Total SKUs</span></div>
+    <div class="stat"><b id="statUnits">0</b><span>Total units in stock</span></div>
+    <div class="stat"><b id="statValue">$0</b><span>Inventory value</span></div>
+    <div class="stat alert"><b id="statLow">0</b><span>Low-stock alerts (5 or fewer)</span></div>
+  </section>
+
+  <section class="card" id="alertCard">
+    <p class="eyebrow">Low-stock alerts</p>
+    <h2>Reorder soon</h2>
+    <div class="alert-box" id="alertBox"></div>
+  </section>
+
+  <section class="card">
+    <p class="eyebrow">Barcode simulation</p>
+    <h2>Scan or type a barcode</h2>
+    <p class="note">Try a barcode like FUR-001, or press Simulate scan for a random item. In a client build, a USB or Bluetooth scanner fills this field automatically.</p>
+    <div class="grid3">
+      <div>
+        <label for="barcode">Barcode</label>
+        <input id="barcode" type="text" placeholder="e.g. FUR-001">
+      </div>
+      <div>
+        <label for="scanAction">&nbsp;</label>
+        <button type="button" class="primary" onclick="scanBarcode()">Scan barcode</button>
+      </div>
+      <div>
+        <label for="simAction">&nbsp;</label>
+        <button type="button" class="secondary" id="simAction" onclick="simulateScan()">Simulate scan</button>
+      </div>
+    </div>
+    <div class="scan-result" id="scanResult" style="display:none"></div>
+    <p class="note" id="scanEmpty">No scan yet. Scan a barcode above to find an item.</p>
+  </section>
+
+  <section class="card">
+    <p class="eyebrow">Inventory</p>
+    <h2>25 sample SKUs</h2>
+    <div class="grid3">
+      <div>
+        <label for="search">Search</label>
+        <input id="search" type="text" placeholder="Search name or SKU">
+      </div>
+      <div>
+        <label for="category">Category</label>
+        <select id="category">
+          <option value="All">All categories</option>
+          <option value="Sofas">Sofas</option>
+          <option value="Tables">Tables</option>
+          <option value="Chairs">Chairs</option>
+          <option value="Beds">Beds</option>
+          <option value="Storage">Storage</option>
+          <option value="Dining">Dining</option>
+        </select>
+      </div>
+      <div>
+        <label for="locationFilter">Location</label>
+        <select id="locationFilter">
+          <option value="All">Showroom and warehouse</option>
+          <option value="Showroom">Showroom only</option>
+          <option value="Warehouse">Warehouse only</option>
+        </select>
+      </div>
+    </div>
+    <label class="check"><input id="lowOnly" type="checkbox"> Show low-stock items only (5 or fewer)</label>
+    <p class="note" id="resultCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>SKU / Barcode</th><th>Product</th><th>Category</th><th>Location</th><th>Stock</th><th>Price</th><th>Status</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p class="note">Stock changes in this demo stay in this browser only. Reloading the page restores the original 25 sample SKUs.</p>
+  </section>
+
+  <footer><p class="note">Built by Abiz Global Services for the live furniture dashboard gig. Sample data only - a real client build uses the client's own products, prices, and stock rules.</p></footer>
+</div>
+<script>
+var PRODUCTS=[
+ {sku:"FUR-001",name:"3-Seater Fabric Sofa - Grey",cat:"Sofas",loc:"Showroom",stock:12,price:899},
+ {sku:"FUR-002",name:"2-Seater Leather Sofa - Brown",cat:"Sofas",loc:"Showroom",stock:4,price:1199},
+ {sku:"FUR-003",name:"L-Shape Corner Sofa - Beige",cat:"Sofas",loc:"Warehouse",stock:7,price:1399},
+ {sku:"FUR-004",name:"Sofa Bed - Charcoal",cat:"Sofas",loc:"Warehouse",stock:3,price:749},
+ {sku:"FUR-005",name:"Oak Coffee Table",cat:"Tables",loc:"Showroom",stock:18,price:249},
+ {sku:"FUR-006",name:"Glass Top Side Table",cat:"Tables",loc:"Showroom",stock:2,price:129},
+ {sku:"FUR-007",name:"Walnut Console Table",cat:"Tables",loc:"Warehouse",stock:9,price:329},
+ {sku:"FUR-008",name:"Round Dining Table - 6 Seat",cat:"Dining",loc:"Showroom",stock:5,price:699},
+ {sku:"FUR-009",name:"Dining Chair - Set of 2, Oak",cat:"Dining",loc:"Warehouse",stock:22,price:189},
+ {sku:"FUR-010",name:"Dining Bench - Walnut",cat:"Dining",loc:"Showroom",stock:6,price:279},
+ {sku:"FUR-011",name:"Accent Armchair - Mustard",cat:"Chairs",loc:"Showroom",stock:8,price:349},
+ {sku:"FUR-012",name:"Office Chair - Ergonomic",cat:"Chairs",loc:"Warehouse",stock:15,price:299},
+ {sku:"FUR-013",name:"Rocking Chair - Wooden",cat:"Chairs",loc:"Showroom",stock:1,price:219},
+ {sku:"FUR-014",name:"Bar Stool - Set of 2, Black",cat:"Chairs",loc:"Warehouse",stock:11,price:159},
+ {sku:"FUR-015",name:"Queen Bed Frame - Oak",cat:"Beds",loc:"Showroom",stock:6,price:799},
+ {sku:"FUR-016",name:"King Bed Frame - Walnut",cat:"Beds",loc:"Warehouse",stock:4,price:999},
+ {sku:"FUR-017",name:"Single Bed Frame - White",cat:"Beds",loc:"Warehouse",stock:14,price:449},
+ {sku:"FUR-018",name:"Bedside Table - Pair",cat:"Beds",loc:"Showroom",stock:10,price:199},
+ {sku:"FUR-019",name:"4-Door Wardrobe - Oak",cat:"Storage",loc:"Warehouse",stock:5,price:1099},
+ {sku:"FUR-020",name:"Bookshelf - 5 Tier, Walnut",cat:"Storage",loc:"Showroom",stock:9,price:379},
+ {sku:"FUR-021",name:"TV Stand - 160 cm, Grey",cat:"Storage",loc:"Showroom",stock:13,price:429},
+ {sku:"FUR-022",name:"Shoe Cabinet - 3 Tier",cat:"Storage",loc:"Warehouse",stock:0,price:179},
+ {sku:"FUR-023",name:"Dresser with Mirror - White",cat:"Storage",loc:"Showroom",stock:3,price:549},
+ {sku:"FUR-024",name:"Study Desk - 120 cm",cat:"Tables",loc:"Warehouse",stock:16,price:289},
+ {sku:"FUR-025",name:"Outdoor Patio Set - 4 Seat",cat:"Dining",loc:"Warehouse",stock:2,price:899}
+];
+function statusOf(p){
+ if(p.stock===0) return "Out of stock";
+ if(p.stock<=5) return "Low stock";
+ return "In stock";
+}
+function badgeClass(s){
+ if(s==="Out of stock") return "out";
+ if(s==="Low stock") return "low";
+ return "ok";
+}
+function money(n){return "$"+n.toLocaleString("en-US")}
+function renderStats(){
+ var units=0,value=0,low=0;
+ PRODUCTS.forEach(function(p){units+=p.stock;value+=p.stock*p.price;if(p.stock<=5) low++;});
+ document.getElementById("statSkus").textContent=PRODUCTS.length;
+ document.getElementById("statUnits").textContent=units;
+ document.getElementById("statValue").textContent=money(value);
+ document.getElementById("statLow").textContent=low;
+ var lows=PRODUCTS.filter(function(p){return p.stock<=5;});
+ var box=document.getElementById("alertBox");
+ box.innerHTML="<b>"+lows.length+" items at 5 or fewer units:</b> "+lows.map(function(p){return p.sku+" - "+p.name+" ("+p.stock+")";}).join(", ")+".";
+}
+function renderRows(){
+ var q=(document.getElementById("search").value||"").toLowerCase();
+ var cat=document.getElementById("category").value;
+ var loc=document.getElementById("locationFilter").value;
+ var lowOnly=document.getElementById("lowOnly").checked;
+ var list=PRODUCTS.filter(function(p){
+  if(cat!=="All" && p.cat!==cat) return false;
+  if(loc!=="All" && p.loc!==loc) return false;
+  if(lowOnly && p.stock>5) return false;
+  if(q && (p.name.toLowerCase().indexOf(q)<0 && p.sku.toLowerCase().indexOf(q)<0)) return false;
+  return true;
+ });
+ var tbody=document.getElementById("rows"); tbody.innerHTML="";
+ list.forEach(function(p){
+  var s=statusOf(p);
+  var tr=document.createElement("tr");
+  tr.innerHTML="<td>"+p.sku+"</td><td>"+p.name+"</td><td>"+p.cat+"</td><td><span class='badge "+(p.loc==="Showroom"?"showroom":"warehouse")+"'>"+p.loc+"</span></td><td>"+p.stock+"</td><td>"+money(p.price)+"</td><td><span class='badge "+badgeClass(s)+"'>"+s+"</span></td>";
+  tbody.appendChild(tr);
+ });
+ document.getElementById("resultCount").textContent="Showing "+list.length+" of "+PRODUCTS.length+" SKUs.";
+}
+function showScan(p){
+ var el=document.getElementById("scanResult"); el.style.display="block";
+ var s=statusOf(p);
+ el.innerHTML="<b>Found: "+p.name+"</b><br>SKU / Barcode: "+p.sku+"<br>Category: "+p.cat+" - Location: "+p.loc+"<br>Stock: "+p.stock+" - Status: "+s+" - Price: "+money(p.price);
+ document.getElementById("scanEmpty").style.display="none";
+}
+function scanBarcode(){
+ var code=(document.getElementById("barcode").value||"").trim().toUpperCase();
+ if(!code){alert("Enter a barcode first, for example FUR-001.");return;}
+ var p=PRODUCTS.find(function(x){return x.sku===code;});
+ if(!p){var el=document.getElementById("scanResult");el.style.display="block";el.innerHTML="<b>No item found for barcode "+code+".</b><br>Try FUR-001 to FUR-025.";document.getElementById("scanEmpty").style.display="none";return;}
+ showScan(p);
+}
+function simulateScan(){
+ var p=PRODUCTS[Math.floor(Math.random()*PRODUCTS.length)];
+ document.getElementById("barcode").value=p.sku;
+ showScan(p);
+}
+["search","category","locationFilter","lowOnly"].forEach(function(id){
+ document.getElementById(id).addEventListener("input",renderRows);
+ document.getElementById(id).addEventListener("change",renderRows);
+});
+renderStats(); renderRows();
+</script>
+</body>
+</html>
